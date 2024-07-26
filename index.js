@@ -261,6 +261,146 @@ function create_lowest() {
   }
 }
 
+function create_units_streamgraph() {
+  const width = 928;
+  const height = 500;
+  const marginTop = 30;
+  const marginRight = 30;
+  const marginBottom = 40;
+  const marginLeft = 40;
+
+  let max_gpa = 0;
+  let min_gpa = 4;
+
+  // Data generation
+  let academic_units = {};
+  for (let i = 0; i < data.length; i++) {
+    let unit = data[i]["Academic Units"];
+    if (!academic_units[unit]) {
+      academic_units[unit] = [];
+    }
+    academic_units[unit].push(data[i]);
+
+  }
+
+  let yearly_academic_units = {};
+  let total_students = 0;
+  for (let key in academic_units) {
+    if (key === "Other") { continue; } // dont include the other catagory of classes
+
+    let year_stats = {};
+    for (let i = 0; i < academic_units[key].length; i++) {
+      let year = academic_units[key][i]["Year"];
+      if (!year_stats[year]) {
+        year_stats[year] = {};
+        year_stats[year].year = year;
+        year_stats[year].gradepoints = [];
+        year_stats[year].students = [];
+      }
+      let cur_gradepoints = get_gradepoints(academic_units[key][i]);
+      year_stats[year].gradepoints.push(cur_gradepoints);
+      year_stats[year].students.push(Number(academic_units[key][i]["Num Students"]));
+      total_students += Number(academic_units[key][i]["Num Students"]);
+    }
+
+    for (let year in year_stats) {
+      let cur_gradepoints = year_stats[year].gradepoints.reduce((e1, e2) => { return e1 + e2 }, 0);
+      let cur_students = year_stats[year].students.reduce((e1, e2) => { return e1 + e2 }, 0);
+      let cur_gpa = cur_gradepoints / cur_students;
+      year_stats[year].gpa = cur_gpa;
+      if (cur_gpa < min_gpa) {
+        min_gpa = cur_gpa;
+      }
+      if (cur_gpa > max_gpa) {
+        max_gpa = cur_gpa;
+      }
+    }
+    yearly_academic_units[key] = year_stats;
+  }
+
+  let flattenedData = [];
+  for (let unit in yearly_academic_units) {
+    for (let year in yearly_academic_units[unit]) {
+      let ele = yearly_academic_units[unit][year];
+      let gradepoints = ele.gradepoints.reduce((e1, e2) => { return e1 + e2 }, 0);
+      let normalized = gradepoints / total_students; // normalize with respect to all units
+      flattenedData.push({
+        year: year,
+        unit: unit,
+        gpps: normalized,
+      })
+
+    }
+
+  }
+
+  // Determine the series that need to be stacked.
+  const series = d3.stack()
+    .offset(d3.stackOffsetWiggle)
+    .order(d3.stackOrderInsideOut)
+    .keys(d3.union(flattenedData.map(d => d.unit))) // distinct series keys, in input order
+    .value(([, D], key) => D.get(key).gpps) // get value for each series key and stack
+    (d3.index(flattenedData, d => d.year, d => d.unit)); // group by stack then series key
+
+  // Prepare the scales for positional and color encodings.
+  // const x = d3.scaleUtc([new Date("2010"), new Date("2023")], [marginLeft, width - marginRight]);
+  const x = d3.scaleUtc()
+    .domain(d3.extent(flattenedData, d => d.year))
+    .range([marginLeft, width - marginRight]);
+
+  const y = d3.scaleLinear()
+    .domain(d3.extent(series.flat(2)))
+    .rangeRound([height - marginBottom, marginTop]);
+
+  const color = d3.scaleOrdinal()
+    .domain(series.map(d => d.key))
+    .range(d3.schemeTableau10);
+
+  // Construct an area shape.
+  const area = d3.area()
+    .x(d => x(d.data[0]))
+    .y0(d => y(d[0]))
+    .y1(d => y(d[1]));
+
+  let svg = d3.select("svg#third-svg")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", [0, 0, width, height])
+    .attr("style", "max-width: 100%; height: auto; height: intrinsic;");;
+
+  // Add the y-axis, remove the domain line, add grid lines and a label.
+  svg.append("g")
+    .attr("transform", `translate(${marginLeft},0)`)
+    .call(d3.axisLeft(y).ticks(height / 80).tickFormat((d) => Math.abs(d).toLocaleString("en-US")))
+    .call(g => g.select(".domain").remove())
+    .call(g => g.selectAll(".tick line").clone()
+      .attr("x2", width - marginLeft - marginRight)
+      .attr("stroke-opacity", 0.1))
+    .call(g => g.append("text")
+      .attr("x", -marginLeft)
+      .attr("y", 10)
+      .attr("fill", "currentColor")
+      .attr("text-anchor", "start")
+      .text("↑ Unemployed persons"));
+
+  // Append the x-axis and remove the domain line.
+  svg.append("g")
+    .attr("transform", `translate(0,${height - marginBottom})`)
+    .call(d3.axisBottom(x).tickSizeOuter(0))
+    .call(g => g.select(".domain").remove());
+
+  // Append a path for each series.
+  svg.append("g")
+    .selectAll()
+    .data(series)
+    .join("path")
+    .attr("fill", d => academic_units_color[d.key])
+    // .attr("fill", d => color(d.key))
+    .attr("d", area)
+    .append("title")
+    .text(d => d.key);
+}
+
 function createLegends() {
   const width = 928;
   const height = 100;
@@ -318,8 +458,9 @@ function createLegends() {
 
 }
 
+createLegends();
 create_averages();
 create_lowest();
-createLegends();
+create_units_streamgraph();
 
 
