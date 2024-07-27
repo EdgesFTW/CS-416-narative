@@ -323,13 +323,29 @@ function create_units_streamgraph() {
     for (let year in yearly_academic_units[unit]) {
       let ele = yearly_academic_units[unit][year];
       let gradepoints = ele.gradepoints.reduce((e1, e2) => { return e1 + e2 }, 0);
-      let normalized = gradepoints / total_students; // normalize with respect to all units
+      let students = ele.students.reduce((e1, e2) => { return e1 + e2 }, 0);
+      let normalized = gradepoints / students; // normalize with respect to all units
       flattenedData.push({
         year: year,
         unit: unit,
         gpps: normalized,
       })
+    }
+  }
 
+  // renormalize by subtracting off the minumum each year
+  for (let year in yearly_academic_units["Grainger"]) {
+    let min = 4;
+    for (let i = 0; i < flattenedData.length; i++) {
+      if (flattenedData[i].year == year && flattenedData[i].gpps < min) {
+        min = flattenedData[i].gpps;
+      }
+    }
+    // subtract off min
+    for (let i = 0; i < flattenedData.length; i++) {
+      if (flattenedData[i].year == year) {
+        flattenedData[i].gpps += (0.075 - min);
+      }
     }
 
   }
@@ -343,22 +359,15 @@ function create_units_streamgraph() {
     (d3.index(flattenedData, d => d.year, d => d.unit)); // group by stack then series key
 
   // Prepare the scales for positional and color encodings.
-  // const x = d3.scaleUtc([new Date("2010"), new Date("2023")], [marginLeft, width - marginRight]);
-  const x = d3.scaleUtc()
-    .domain(d3.extent(flattenedData, d => d.year))
-    .range([marginLeft, width - marginRight]);
+  const x = d3.scaleUtc([new Date("2010"), new Date("2023")], [marginLeft, width - marginRight]);
 
   const y = d3.scaleLinear()
     .domain(d3.extent(series.flat(2)))
     .rangeRound([height - marginBottom, marginTop]);
 
-  const color = d3.scaleOrdinal()
-    .domain(series.map(d => d.key))
-    .range(d3.schemeTableau10);
-
   // Construct an area shape.
   const area = d3.area()
-    .x(d => x(d.data[0]))
+    .x(d => x(new Date(d.data[0])))
     .y0(d => y(d[0]))
     .y1(d => y(d[1]));
 
@@ -401,6 +410,130 @@ function create_units_streamgraph() {
     .text(d => d.key);
 }
 
+function create_overall_barchart() {
+  const width = 928;
+  const height = 500;
+  const marginTop = 30;
+  const marginRight = 30;
+  const marginBottom = 40;
+  const marginLeft = 40;
+  const minYear = 2010;
+  const maxYear = 2023;
+
+  let max_gpa = 0;
+  let min_gpa = 4;
+
+  // Data generation
+  let academic_units = {};
+  for (let i = 0; i < data.length; i++) {
+    let unit = data[i]["Academic Units"];
+    if (!academic_units[unit]) {
+      academic_units[unit] = [];
+    }
+    academic_units[unit].push(data[i]);
+
+  }
+
+  let yearly_academic_units = {};
+  let total_students = 0;
+  for (let key in academic_units) {
+    if (key === "Other") { continue; } // dont include the other catagory of classes
+
+    let year_stats = {};
+    for (let i = 0; i < academic_units[key].length; i++) {
+      let year = academic_units[key][i]["Year"];
+      if (!year_stats[year]) {
+        year_stats[year] = {};
+        year_stats[year].year = year;
+        year_stats[year].gradepoints = [];
+        year_stats[year].students = [];
+      }
+      let cur_gradepoints = get_gradepoints(academic_units[key][i]);
+      year_stats[year].gradepoints.push(Number(cur_gradepoints));
+      year_stats[year].students.push(Number(academic_units[key][i]["Num Students"]));
+      total_students += Number(academic_units[key][i]["Num Students"]);
+    }
+
+    for (let year in year_stats) {
+      let cur_gradepoints = year_stats[year].gradepoints.reduce((e1, e2) => { return e1 + e2 }, 0);
+      let cur_students = year_stats[year].students.reduce((e1, e2) => { return e1 + e2 }, 0);
+      let cur_gpa = cur_gradepoints / cur_students;
+      year_stats[year].gpa = cur_gpa;
+      if (cur_gpa < min_gpa) {
+        min_gpa = cur_gpa;
+      }
+      if (cur_gpa > max_gpa) {
+        max_gpa = cur_gpa;
+      }
+    }
+    yearly_academic_units[key] = year_stats;
+  }
+
+  let flattenedData = [];
+  for (let year in yearly_academic_units["Grainger"]) {
+    let total_gradepoints = 0;
+    let total_students = 0;
+    for (let unit in yearly_academic_units) {
+      let ele = yearly_academic_units[unit][year];
+      let gradepoints = ele.gradepoints.reduce((e1, e2) => { return e1 + e2 }, 0);
+      let students = ele.students.reduce((e1, e2) => { return e1 + e2 }, 0);
+      total_gradepoints += gradepoints;
+      total_students += students;
+    }
+    let gpa = total_gradepoints / total_students;
+    flattenedData.push({
+      year: year,
+      gpa: gpa,
+    })
+  }
+
+  // Declare the x (horizontal position) scale.
+  const x = d3.scaleUtc([new Date("2010"), new Date("2023")], [marginLeft, width - marginRight]);
+  // const x = d3.scaleBand()
+  //   .domain([new Date(minYear), new Date(maxYear)]) // descending frequency
+  //   .range([marginLeft, width - marginRight])
+  //   .padding(0.1);
+
+  // Declare the y (vertical position) scale.
+  const y = d3.scaleLinear()
+    .domain([d3.min(flattenedData, (d) => d.gpa), d3.max(flattenedData, (d) => d.gpa)])
+    .range([height - marginBottom, marginTop]);
+
+  let svg = d3.select("svg#fourth-svg")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", [0, 0, width, height])
+    .attr("style", "max-width: 100%; height: auto; height: intrinsic;");;
+
+  // Add the x-axis and label.
+  svg.append("g")
+    .attr("transform", `translate(0,${height - marginBottom})`)
+    .call(d3.axisBottom(x).tickSizeOuter(0));
+
+  // Add the y-axis and label, and remove the domain line.
+  svg.append("g")
+    .attr("transform", `translate(${marginLeft},0)`)
+    .call(d3.axisLeft(y).tickFormat((y) => y))
+    .call(g => g.select(".domain").remove())
+    .call(g => g.append("text")
+      .attr("x", -marginLeft)
+      .attr("y", 10)
+      .attr("fill", "currentColor")
+      .attr("text-anchor", "start")
+      .text("↑ Frequency (%)"));
+
+  // Add a rect for each bar.
+  svg.append("g")
+    .attr("fill", "steelblue")
+    .selectAll()
+    .data(flattenedData)
+    .join("rect")
+    .attr("x", (d) => x(new Date(d.year)))
+    .attr("y", (d) => y(d.gpa))
+    .attr("height", (d) => y(d3.min(flattenedData, (d) => d.gpa)) - y(d.gpa))
+    .attr("width", 20);
+}
+
 function createLegends() {
   const width = 928;
   const height = 100;
@@ -424,6 +557,7 @@ function createLegends() {
   function addToSvg(svg) {
     let i = 0;
     for (let key in academic_units) {
+      if (key == "Other") { continue; }
       let row = i / cols;
       let col = i % cols;
 
@@ -456,11 +590,33 @@ function createLegends() {
     .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
   addToSvg(second);
 
+  let third = d3.select("svg#third-legend")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", [0, 0, width, height])
+    .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
+  addToSvg(third);
+
+  let fourth = d3.select("svg#fourth-legend")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", [0, 0, width, height])
+    .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
+  addToSvg(fourth);
+
+  let fifth = d3.select("svg#fifth-legend")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", [0, 0, width, height])
+    .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
+  addToSvg(fifth);
+
 }
 
 createLegends();
 create_averages();
 create_lowest();
 create_units_streamgraph();
+create_overall_barchart();
 
 
