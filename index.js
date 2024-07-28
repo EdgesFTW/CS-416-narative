@@ -41,7 +41,7 @@ function get_gradepoints(course) {
   return value;
 }
 
-function create_averages() {
+function create_averages0() {
   const width = 928;
   const height = 500;
   const marginTop = 30;
@@ -122,8 +122,7 @@ function create_averages() {
       .attr("x", width / 2)
       .attr("y", marginBottom / 1.5)
       .attr("fill", "currentColor")
-      .attr("text-anchor", "start")
-      .text("Average GPA"));
+      .attr("text-anchor", "start"));
 
   // Add the y-axis, remove the domain line, add grid lines and a label.
   svg.append("g")
@@ -147,11 +146,186 @@ function create_averages() {
     }
 
     svg.append("path")
+      .attr("id", key.replace(/\s/g, ""))
       .attr("fill", "none")
       .attr("stroke", academic_units_color[key])
       .attr("stroke-width", 2.5)
       .attr("d", line(flattened_year_stats));
+
+    const pathLength = d3.select("path#" + key.replace(/\s/g, "")).node().getTotalLength();
+
+    d3.select("path#" + key.replace(/\s/g, ""))
+      .interrupt()
+      .attr("stroke-dashoffset", pathLength)
+      .attr("stroke-dasharray", pathLength)
+      .transition()
+      .ease(d3.easeSin)
+      .delay(2000)
+      .duration(4500)
+      .attr("stroke-dashoffset", 0);
   }
+
+  d3.select("#avgs")
+    .on("click", () => {
+      for (let key in yearly_academic_units) {
+        const pathLength = d3.select("path#" + key.replace(/\s/g, "")).node().getTotalLength();
+
+        d3.select("path#" + key.replace(/\s/g, ""))
+          .interrupt()
+          .attr("stroke-dashoffset", pathLength)
+          .attr("stroke-dasharray", pathLength)
+          .transition()
+          .ease(d3.easeSin)
+          .duration(4500)
+          .attr("stroke-dashoffset", 0);
+
+      }
+
+    })
+
+}
+
+function create_averages1() {
+  const width = 928;
+  const height = 500;
+  const marginTop = 30;
+  const marginRight = 30;
+  const marginBottom = 40;
+  const marginLeft = 40;
+
+  let max_gpa = 0;
+  let min_gpa = 4;
+
+  // Data generation
+  let academic_units = {};
+  for (let i = 0; i < data.length; i++) {
+    let unit = data[i]["Academic Units"];
+    if (!academic_units[unit]) {
+      academic_units[unit] = [];
+    }
+    academic_units[unit].push(data[i]);
+
+  }
+
+  let yearly_academic_units = {};
+  for (let key in academic_units) {
+    if (key != "Grainger" && key != "LAS" && key != "Gies") { continue; } // dont include the other catagory of classes
+
+    let year_stats = {};
+    for (let i = 0; i < academic_units[key].length; i++) {
+      let year = academic_units[key][i]["Year"];
+      if (!year_stats[year]) {
+        year_stats[year] = {};
+        year_stats[year].year = year;
+        year_stats[year].gradepoints = [];
+        year_stats[year].students = [];
+      }
+      let cur_gradepoints = get_gradepoints(academic_units[key][i]);
+      year_stats[year].gradepoints.push(cur_gradepoints);
+      year_stats[year].students.push(Number(academic_units[key][i]["Num Students"]));
+    }
+
+    for (let year in year_stats) {
+      let cur_gradepoints = year_stats[year].gradepoints.reduce((e1, e2) => { return e1 + e2 }, 0);
+      let cur_students = year_stats[year].students.reduce((e1, e2) => { return e1 + e2 }, 0);
+      let cur_gpa = cur_gradepoints / cur_students;
+      year_stats[year].gpa = cur_gpa;
+      if (cur_gpa < min_gpa) {
+        min_gpa = cur_gpa;
+      }
+      if (cur_gpa > max_gpa) {
+        max_gpa = cur_gpa;
+      }
+    }
+    yearly_academic_units[key] = year_stats;
+  }
+
+  // Declare the x (horizontal position) scale.
+  const x = d3.scaleUtc([new Date("2010"), new Date("2023")], [marginLeft, width - marginRight]);
+
+  // Declare the y (vertical position) scale.
+  const y = d3.scaleLinear([min_gpa, max_gpa], [height - marginBottom, marginTop]);
+
+  // Declare the line generator.
+  const line = d3.line()
+    .x(d => x(new Date(d.year)))
+    .y(d => y(d.gpa));
+
+
+  let svg = d3.select("svg#first-svg1")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", [0, 0, width, height])
+    .attr("style", "max-width: 100%; height: auto; height: intrinsic;");;
+
+  // Add the x-axis.
+  svg.append("g")
+    .attr("transform", `translate(0,${height - marginBottom})`)
+    .call(d3.axisBottom(x).ticks(width / 80).tickSizeOuter(0))
+    .call(g => g.append("text")
+      .attr("x", width / 2)
+      .attr("y", marginBottom / 1.5)
+      .attr("fill", "currentColor")
+      .attr("text-anchor", "start"));
+
+  // Add the y-axis, remove the domain line, add grid lines and a label.
+  svg.append("g")
+    .attr("transform", `translate(${marginLeft},0)`)
+    .call(d3.axisLeft(y).ticks(height / 40))
+    .call(g => g.select(".domain").remove())
+    .call(g => g.selectAll(".tick line").clone()
+      .attr("x2", width - marginLeft - marginRight)
+      .attr("stroke-opacity", 0.1))
+    .call(g => g.append("text")
+      .attr("x", -marginLeft)
+      .attr("y", 10)
+      .attr("fill", "currentColor")
+      .attr("text-anchor", "start")
+      .text("Average GPA"));
+
+  for (let key in yearly_academic_units) {
+    let flattened_year_stats = [];
+    for (let year in yearly_academic_units[key]) {
+      flattened_year_stats.push(yearly_academic_units[key][year]);
+    }
+
+    svg.append("path")
+      .attr("id", "avg1" + key.replace(/\s/g, ""))
+      .attr("fill", "none")
+      .attr("stroke", academic_units_color[key])
+      .attr("stroke-width", 2.5)
+      .attr("d", line(flattened_year_stats));
+
+    const pathLength = d3.select("path#avg1" + key.replace(/\s/g, "")).node().getTotalLength();
+
+    d3.select("path#avg1" + key.replace(/\s/g, ""))
+      .interrupt()
+      .attr("stroke-dashoffset", pathLength)
+      .attr("stroke-dasharray", pathLength)
+      .transition()
+      .ease(d3.easeSin)
+      .delay(2000)
+      .duration(4500)
+      .attr("stroke-dashoffset", 0);
+  }
+
+  d3.select("#avgs1")
+    .on("click", () => {
+      for (let key in yearly_academic_units) {
+        const pathLength = d3.select("path#avg1" + key.replace(/\s/g, "")).node().getTotalLength();
+
+        d3.select("path#avg1" + key.replace(/\s/g, ""))
+          .interrupt()
+          .attr("stroke-dashoffset", pathLength)
+          .attr("stroke-dasharray", pathLength)
+          .transition()
+          .ease(d3.easeSin)
+          .duration(4500)
+          .attr("stroke-dashoffset", 0);
+
+      }
+
+    })
 
 }
 
@@ -633,9 +807,9 @@ function createLegends() {
 
 }
 
-// let tooltip = d3.select
 createLegends();
-create_averages();
+create_averages0();
+create_averages1();
 create_lowest();
 create_units_streamgraph();
 create_overall_barchart();

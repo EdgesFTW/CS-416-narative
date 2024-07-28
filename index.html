@@ -10,27 +10,56 @@
 	<link href="./output.css" rel="stylesheet">
 </head>
 
-<body class="container">
+<body class="container mx-auto max-w-3xl">
 	<h1 class="text-center text-5xl m-8 font-bold">
 		CS 416 Narative Visualization
 	</h1>
-	<p class="text-center m-4 min-h-40">
+	<p class="m-4 min-h-40">
 		An analysis of grade inflation through from 2010 to 2023. Dataset taken from Wade Fagen-Ulmschneider's
 		public GPA dataset at the University of Illinois at Urbana-Champaign, gathered through FOIA requests.
 	</p>
-	<p class="text-center m-4 min-h-52">
+	<p class="m-4 min-h-52">
 		<!-- To begin, set the filtering options and click okay! -->
-		To begin, start scrolling!
+		<!-- To begin, start scrolling! -->
+		Grade inflation is the phenomenon that occurs overtime as students as a whole are awarded higher and
+		higher grades. Here, I will attempt to highlight the various differences between the academic units
+		(Grainger, Gies, ACES, ect.) and how they experience grade inflation over the last decade and a half.
 	</p>
 	<div class="w-full">
+		<p class="m-12">
+			We first highlight the various academic units that we are interested in.
+			The following visualizaton shows the average gpa of each academic unit
+			over the last decade and a half.
+		</p>
 		<center>
 			<svg id="first-legend" class="mx-auto"></svg>
 			<svg id="first-svg" class="mx-auto shadow-slate-950 shadow-lg"></svg>
+		</center>
+		<div class="container flex mx-auto">
+			<button id="avgs" class="hover:px-6 hover:py-4 hover:my-4 transition-all
+				bg-slate-600 px-3 py-2 my-6 mx-auto rounded-md shadow-slate-950 shadow-lg">
+				Replay animation
+			</button>
+		</div>
+	</div>
+	<div class=" w-full min-h-96"> </div>
+	<div class="w-full">
+		<p class="m-12">
+			We then zoom in on the largest academic units Grainger, LAS, and Gies,
+			to better understand how a typical student from the university experiances
+			grade inflation.
+		</p>
+		<center>
+			<svg id="first-legend1" class="mx-auto"></svg>
+			<svg id="first-svg1" class="mx-auto shadow-slate-950 shadow-lg"></svg>
 		</center>
 	</div>
 	<div class=" w-full min-h-96"> </div>
 	<div class="w-full">
 		<center>
+			<p class="m-4">
+				We should highlight
+			</p>
 			<svg id="second-legend" class="mx-auto"></svg>
 			<svg id="second-svg" class="mx-auto shadow-slate-950 shadow-lg"></svg>
 		</center>
