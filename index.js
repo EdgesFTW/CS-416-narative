@@ -245,7 +245,7 @@ function create_lowest() {
       .attr("y", 10)
       .attr("fill", "currentColor")
       .attr("text-anchor", "start")
-      .text("Minimum GPA"));
+      .text("Minimum Average GPA"));
 
   for (let key in yearly_academic_units) {
     let flattened_year_stats = [];
@@ -491,7 +491,7 @@ function create_overall_barchart() {
 
   // Declare the y (vertical position) scale.
   const y = d3.scaleLinear()
-    .domain([d3.min(flattenedData, (d) => d.gpa), d3.max(flattenedData, (d) => d.gpa)])
+    .domain([d3.min(flattenedData, (d) => d.gpa) - 0.03, d3.max(flattenedData, (d) => d.gpa) + 0.03])
     .range([height - marginBottom, marginTop]);
 
   let svg = d3.select("svg#fourth-svg")
@@ -528,7 +528,7 @@ function create_overall_barchart() {
     .join("rect")
     .attr("x", (d) => x(new Date(d.year)))
     .attr("y", (d) => y(d.gpa))
-    .attr("height", (d) => y(d3.min(flattenedData, (d) => d.gpa)) - y(d.gpa))
+    .attr("height", (d) => y(d3.min(flattenedData, (d) => d.gpa) - 0.03) - y(d.gpa))
     .attr("width", 20)
     .attr("id", (d) => "bar-" + d.year)
     .on("mouseenter", (e, d) => {
