@@ -158,12 +158,17 @@ function create_averages0() {
       .interrupt()
       .attr("stroke-dashoffset", pathLength)
       .attr("stroke-dasharray", pathLength)
-      .transition()
-      .ease(d3.easeSin)
-      .delay(2000)
-      .duration(4500)
-      .attr("stroke-dashoffset", 0);
+    // .transition()
+    // .ease(d3.easeSin)
+    // .delay(2000)
+    // .duration(4500)
+    // .attr("stroke-dashoffset", 0);
   }
+
+  document.querySelector("#first-svg").parentNode.children[0]
+    .setAttribute("opacity", "0");
+  document.querySelector("#first-svg").parentNode.children[1]
+    .setAttribute("opacity", "0");
 
   d3.select("#avgs")
     .on("click", () => {
@@ -176,6 +181,7 @@ function create_averages0() {
           .attr("stroke-dasharray", pathLength)
           .transition()
           .ease(d3.easeSin)
+          .delay(100)
           .duration(4500)
           .attr("stroke-dashoffset", 0);
 
@@ -183,6 +189,23 @@ function create_averages0() {
 
     })
 
+  // from stack overflow
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        if (entry.target.getAttribute("opacity") == 0) {
+          entry.target.parentNode.children[0].setAttribute("opacity", "100")
+          entry.target.parentNode.children[1].setAttribute("opacity", "100")
+          setTimeout(() => {
+            let button = document.querySelector("#avgs");
+            button["__on"][0].listener();
+          }, 1200);
+
+        }
+      }
+    });
+  });
+  observer.observe(document.querySelector('#first-svg'));
 }
 
 function create_averages1() {
@@ -309,23 +332,6 @@ function create_averages1() {
       .attr("stroke-dashoffset", 0);
   }
 
-  d3.select("#avgs1")
-    .on("click", () => {
-      for (let key in yearly_academic_units) {
-        const pathLength = d3.select("path#avg1" + key.replace(/\s/g, "")).node().getTotalLength();
-
-        d3.select("path#avg1" + key.replace(/\s/g, ""))
-          .interrupt()
-          .attr("stroke-dashoffset", pathLength)
-          .attr("stroke-dasharray", pathLength)
-          .transition()
-          .ease(d3.easeSin)
-          .duration(4500)
-          .attr("stroke-dashoffset", 0);
-
-      }
-
-    })
 
 }
 
@@ -806,6 +812,8 @@ function createLegends() {
   addToSvg(fifth);
 
 }
+
+
 
 createLegends();
 create_averages0();
