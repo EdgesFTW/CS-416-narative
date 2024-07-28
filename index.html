@@ -1,106 +1,286 @@
 <!doctype html>
-<html class="bg-slate-900 text-white">
+<html class="bg-zinc-800 text-white">
 
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<script type="module" src="./d3.v7.min.js"></script>
+	<!-- <script type="module" src="./d3-annotation.min.js"></script> -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/2.5.1/d3-annotation.min.js"
+		integrity="sha512-iBAeBWWWFb8HqSBcrqcz98iIpuVH1la39dEYHtyQ/pGpeCQTQVvLJOWAuhv2Q7JSHp9k7hWA7sGxU3hHJe+tFg=="
+		crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 	<script defer type="module" src="./index.js"></script>
 	<link href="./favicon.ico" rel="icon">
 	<link href="./output.css" rel="stylesheet">
 </head>
 
 <body class="container mx-auto max-w-3xl">
-	<div class="w-full min-h-screen">
-		<h1 class="text-center text-5xl m-8 font-bold">
-			CS 416 Narative Visualization
-		</h1>
-		<p class="m-4 min-h-40">
-			An analysis of grade inflation through from 2010 to 2023. Dataset taken from Wade
-			Fagen-Ulmschneider's
-			public GPA dataset at the University of Illinois at Urbana-Champaign, gathered through FOIA
-			requests.
-		</p>
-		<p class="m-4 min-h-52">
-			<!-- To begin, set the filtering options and click okay! -->
-			Grade inflation is the phenomenon that occurs overtime as students as a whole are awarded higher
-			and
-			higher grades. Here, I will attempt to highlight the various differences between the academic
-			units
-			(Grainger, Gies, ACES, ect.) and how they experience grade inflation over the last decade and a
-			half.
-		</p>
-		<p class="text-center m-16">
-			To begin, start scrolling!
-		</p>
-	</div>
-	<div class="w-full min-h-screen">
-		<p class="m-12">
-			We first highlight the various academic units that we are interested in.
-			The following visualizaton shows the average gpa of each academic unit
-			over the last decade and a half.
-		</p>
-		<center>
-			<svg id="first-legend" class="mx-auto
-				transition-opacity duration-1000 ease-in
-				"></svg>
-			<svg id="first-svg" class="mx-auto shadow-slate-950 shadow-lg
-				transition-opacity delay-200 duration-1000 ease-in
-				"></svg>
-		</center>
-		<div class="container flex mx-auto">
-			<button id="avgs" class="hover:px-6 hover:py-4 hover:my-4 transition-all
-				bg-slate-600 px-3 py-2 my-6 mx-auto rounded-md shadow-slate-950 shadow-lg">
-				Replay animation
-			</button>
-		</div>
-	</div>
-	<div class="w-full min-h-screen">
-		<p class="m-12">
-			We then zoom in on the largest academic units Grainger, LAS, and Gies,
-			to better understand how a typical student from the university experiances
-			grade inflation.
-		</p>
-		<center>
-			<svg id="first-legend1" class="mx-auto
-				transition-opacity duration-1000 ease-in
-				"></svg>
-			<svg id="first-svg1" class="mx-auto shadow-slate-950 shadow-lg
-				transition-opacity duration-1000 ease-in
-				"></svg>
-		</center>
-	</div>
-	<div class="w-full min-h-screen">
-		<center>
-			<p class="m-4">
-				We should highlight
+	<div id="blur" class="blur">
+		<div class="w-full min-h-screen">
+			<h1 class="text-center text-5xl m-8 font-bold">
+				CS 416 Narative Visualization
+			</h1>
+			<p class="m-4 min-h-40">
+				An analysis of grade inflation through from 2010 to 2023. Dataset taken from Wade
+				Fagen-Ulmschneider's
+				public GPA dataset at the University of Illinois at Urbana-Champaign, gathered through
+				FOIA
+				requests.
 			</p>
-			<svg id="second-legend" class="mx-auto"></svg>
-			<svg id="second-svg" class="mx-auto shadow-slate-950 shadow-lg"></svg>
-		</center>
+			<p class="m-4 min-h-52">
+				Grade inflation is the phenomenon that occurs overtime as students as a whole are
+				awarded higher
+				and
+				higher grades. Here, I will attempt to highlight the various differences between the
+				academic
+				units
+				(Grainger, Gies, ACES, ect.) and how they experience grade inflation over the last
+				decade and a
+				half.
+			</p>
+			<p class="text-center text-3xl m-16">
+				To start, begin scrolling!
+			</p>
+		</div>
+		<!-- <div class="w-full min-h-screen"> -->
+		<!-- 	<div class="h-full"> -->
+		<!-- 		<div class="sticky top-2"> -->
+		<!-- 			<p class="m-12"> -->
+		<!-- 				We first highlight the various academic units that we are interested in. -->
+		<!-- 				The following visualizaton shows the average gpa of each academic unit -->
+		<!-- 				over the last decade and a half. -->
+		<!-- 			</p> -->
+		<!-- 			<center> -->
+		<!-- 				<svg id="first-legend" class="mx-auto -->
+		<!-- 				transition-opacity duration-1000 ease-in -->
+		<!-- 		"></svg> -->
+		<!-- 				<svg id="first-svg" class="mx-auto shadow-slate-950 shadow-lg -->
+		<!-- 				transition-opacity delay-200 duration-1000 ease-in -->
+		<!-- 		"></svg> -->
+		<!-- 			</center> -->
+		<!-- 			<div class="container flex mx-auto"> -->
+		<!-- 				<button id="avgs" class="hover:px-6 hover:py-4 hover:my-4 transition-all -->
+		<!-- 					bg-slate-600 px-3 py-2 my-6 mx-auto rounded-md shadow-slate-950 shadow-lg"> -->
+		<!-- 					Replay animation -->
+		<!-- 				</button> -->
+		<!-- 			</div> -->
+		<!-- 		</div> -->
+		<!-- 		<div class="h-[15rem]"></div> -->
+		<!-- 	</div> -->
+		<!-- </div> -->
+		<div class="w-full min-h-screen">
+			<div class="h-full">
+				<div class="sticky top-2">
+					<p class="m-8">
+						We first highlight the University's overall gpa over the last decade and
+						a half. We can very clearly see a strong trend over time. The overall,
+						university wide gpa has been steadily climbing since 2010 and the rate
+						that it has been climbing has increased as time went on. Specifically,
+						in 2020, the first full year of covid, the campus wide average gpa
+						skyrockets for a year. It then drops back down a little bit when we
+						return to inperson classes, however it continues to rise afterwards.
+					</p>
+					<center>
+						<!-- <svg id="fourth-legend" class="mx-auto"></svg> -->
+						<svg id="fourth-svg" class="mx-auto shadow-slate-950 shadow-lg"></svg>
+					</center>
+					<div class="container flex mx-auto">
+						<button id="avgs1" class="hover:px-6 hover:py-4 hover:my-4 transition-all
+						bg-slate-600 px-3 py-2 my-6 mx-auto rounded-md shadow-slate-950 shadow-lg">
+							Replay animation
+						</button>
+					</div>
+				</div>
+				<div class="h-[15rem]"></div>
+			</div>
+		</div>
+		<div class="w-full min-h-screen">
+			<div class="h-full">
+				<div class="sticky top-2">
+					<p class="m-12">
+						We then zoom in on the largest academic units Grainger, LAS, and Gies,
+						to better understand how a students from each academic unit experiance
+						grade inflation. We see a similar trend to the average, we see the same
+						spikes during covid, but we also see how Gies is not accelerating
+						the same as LAS and Grainger after COVID.
+					</p>
+					<center>
+						<svg id="first-legend1" class="mx-auto
+						transition-opacity duration-1000 ease-in "></svg>
+						<svg id="first-svg1" class="mx-auto shadow-slate-950 shadow-lg
+						transition-opacity duration-1000 ease-in "></svg>
+					</center>
+					<div class="container flex mx-auto">
+						<button id="avgs1" class="hover:px-6 hover:py-4 hover:my-4 transition-all
+						bg-slate-600 px-3 py-2 my-6 mx-auto rounded-md shadow-slate-950 shadow-lg">
+							Replay animation
+						</button>
+					</div>
+				</div>
+				<div class="h-[15rem]"></div>
+			</div>
+		</div>
+		<div class="w-full min-h-screen">
+			<div class="h-full">
+				<div class="sticky top-2">
+					<p class="m-4">
+						We should highlight more than just the average gpa of these academic
+						units.
+						We can take the minimum class gpa each year to get a better idea of the
+						'worst case'. Because we are taking the gpa of a single
+						class each year, this is a significantly more volatile metric than
+						taking the average over the entier academic unit.
+					</p>
+					<p class="m-4">
+						While the metric may be more sensitive, we get a better idea of how a
+						student may feel as students tend to have more strong emotions from
+						courses they do not do well in.
+					</p>
+					<center>
+						<svg id="second-legend" class="mx-auto"></svg>
+						<svg id="second-svg" class="mx-auto shadow-slate-950 shadow-lg"></svg>
+					</center>
+					<div class="container flex mx-auto">
+						<button id="avgs1" class="hover:px-6 hover:py-4 hover:my-4 transition-all
+						bg-slate-600 px-3 py-2 my-6 mx-auto rounded-md shadow-slate-950 shadow-lg">
+							Replay animation
+						</button>
+					</div>
+				</div>
+				<div class="h-[15rem]"></div>
+			</div>
+		</div>
+		<div class="w-full min-h-screen">
+			<div class="h-full">
+				<div class="sticky top-2">
+					<p class="m-4">
+						The following streamchart is used to highlight realative differences
+						between the GPAs of academic units every year. The minimum each
+						year is subtracted off of all elements to better highlight the
+						differences.
+					</p>
+					<p class="m-4">
+						The height of the streamchart can be though of as a measure of the
+						variance of GPAs across academic units. From this, we can see that the
+						different academic unit's average gpa did not vary significantly early
+						on in 2010 and 2011, but overtime their averages have began to drift.
+						This goes to show that not every academic unit experiances grade
+						inflation at the same rate.
+					</p>
+					<center>
+						<svg id="third-legend" class="mx-auto"></svg>
+						<svg id="third-svg" class="mx-auto shadow-slate-950 shadow-lg"></svg>
+					</center>
+					<div class="container flex mx-auto">
+						<button id="avgs1" class="hover:px-6 hover:py-4 hover:my-4 transition-all
+						bg-slate-600 px-3 py-2 my-6 mx-auto rounded-md shadow-slate-950 shadow-lg">
+							Replay animation
+						</button>
+					</div>
+				</div>
+				<div class="h-[15rem]"></div>
+			</div>
+		</div>
+		<div class="w-full min-h-screen">
+			<div class="">
+				<div class="">
+					<p class="m-4">
+						Your turn! Utilize the following parameters of academic unit and
+						class level to filter the data and view the results on the
+						visualizations from the previous scenes.
+					</p>
+					<div class="m-4">
+						<p class="m-2 text-2xl">
+							Dashboard options
+						</p>
+						<div id="checkbox-grid" class="grid grid-cols-2">
+							<div>
+								<p class="m-2">Academic Units</p>
+								<ul id="column-1">
+									<li><input type="checkbox" id="chk-grainger"
+											name="chk-grainger" checked>
+										Grainger</li>
+									<li><input type="checkbox" id="chk-las"
+											name="chk-las" checked>
+										LAS</li>
+									<li><input type="checkbox" id="chk-faa"
+											name="chk-faa">
+										FAA</li>
+									<li><input type="checkbox" id="chk-education"
+											name="chk-education" checked>
+										Education</li>
+									<li><input type="checkbox" id="chk-gies"
+											name="chk-gies" checked>
+										Gies</li>
+									<li><input type="checkbox" id="chk-aces"
+											name="chk-aces">
+										ACES</li>
+									<li><input type="checkbox" id="chk-ischool"
+											name="chk-ischool">
+										iSchool</li>
+									<li><input type="checkbox" id="chk-media"
+											name="chk-media">
+										Media</li>
+									<li><input type="checkbox"
+											id="chk-appliedhealthsciences"
+											name="chk-appliedhealthsciences">
+										Applied Health Sciences</li>
+									<li><input type="checkbox" id="chk-ler"
+											name="chk-ler">
+										LER</li>
+									<li><input type="checkbox" id="chk-vetmed"
+											name="chk-vetmed">
+										Vet Med</li>
+								</ul>
+							</div>
+							<div>
+								<p class="m-2">Class Level</p>
+								<ul id="column-2">
+									<li><input type="checkbox" id="chk-100"
+											name="chk-100" checked>
+										100</li>
+									<li><input type="checkbox" id="chk-200"
+											name="chk-200" checked>
+										200</li>
+									<li><input type="checkbox" id="chk-300"
+											name="chk-300" checked>
+										300</li>
+									<li><input type="checkbox" id="chk-400"
+											name="chk-400" checked>
+										400</li>
+									<li><input type="checkbox" id="chk-500"
+											name="chk-500">
+										500</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+					<center>
+						<svg id="fifth-legend" class="mx-auto"></svg>
+						<svg id="fifth-svg"
+							class="mx-auto my-3 shadow-slate-950 shadow-lg"></svg>
+						<svg id="sixth-svg"
+							class="mx-auto my-3 shadow-slate-950 shadow-lg"></svg>
+						<svg id="seventh-svg"
+							class="mx-auto my-3 shadow-slate-950 shadow-lg"></svg>
+						<svg id="eighth-svg"
+							class="mx-auto my-3 shadow-slate-950 shadow-lg"></svg>
+					</center>
+				</div>
+				<div class="h-[15rem]"></div>
+			</div>
+		</div>
+		<div class=" w-full min-h-96"> </div>
 	</div>
-	<div class="w-full min-h-screen">
-		<center>
-			<svg id="third-legend" class="mx-auto"></svg>
-			<svg id="third-svg" class="mx-auto shadow-slate-950 shadow-lg"></svg>
-		</center>
-	</div>
-	<div class=" w-full min-h-96"> </div>
-	<div class="w-full">
-		<center>
-			<svg id="fourth-legend" class="mx-auto"></svg>
-			<svg id="fourth-svg" class="mx-auto shadow-slate-950 shadow-lg"></svg>
-		</center>
-	</div>
-	<div class=" w-full min-h-96"> </div>
-	<div class="w-full">
-		<center>
-			<svg id="fifth-legend" class="mx-auto"></svg>
-			<svg id="fifth-svg" class="mx-auto shadow-slate-950 shadow-lg"></svg>
-		</center>
-	</div>
-	<div class=" w-full min-h-96"> </div>
-	<div id="tooltip" style="position:fixed;top:0px;left:0px;width:200px;height:30px;"></div>
+
 </body>
+<div id="tooltip" style="position:fixed;top:0px;left:0px;width:200px;height:30px;"></div>
+<div class="fixed top-0 left-0 w-screen h-screen bg-zinc-500 bg-opacity-25">
+	<svg id="loading-spinner" class="animate-spin size-20 stroke-slate-200" viewBox="0 0 24 24" fill="none">
+		<path stroke-linecap="round" stroke-linejoin="round"
+			d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+
+	</svg>
+</div>
 
 </html>
