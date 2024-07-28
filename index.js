@@ -362,7 +362,8 @@ function create_units_streamgraph() {
   const x = d3.scaleUtc([new Date("2010"), new Date("2023")], [marginLeft, width - marginRight]);
 
   const y = d3.scaleLinear()
-    .domain(d3.extent(series.flat(2)))
+    // .domain(d3.extent(series.flat(2)))
+    .domain([d3.min(series.flat(2), (d) => d) - 1.1, d3.max(series.flat(2), (d) => d) + 1.1])
     .rangeRound([height - marginBottom, marginTop]);
 
   // Construct an area shape.
@@ -380,7 +381,7 @@ function create_units_streamgraph() {
   // Add the y-axis, remove the domain line, add grid lines and a label.
   svg.append("g")
     .attr("transform", `translate(${marginLeft},0)`)
-    .call(d3.axisLeft(y).ticks(height / 80).tickFormat((d) => Math.abs(d).toLocaleString("en-US")))
+    .call(d3.axisLeft(y).ticks(height / 20).tickFormat((d) => Math.abs(d).toLocaleString("en-US")))
     .call(g => g.select(".domain").remove())
     .call(g => g.selectAll(".tick line").clone()
       .attr("x2", width - marginLeft - marginRight)
@@ -417,8 +418,6 @@ function create_overall_barchart() {
   const marginRight = 30;
   const marginBottom = 40;
   const marginLeft = 40;
-  const minYear = 2010;
-  const maxYear = 2023;
 
   let max_gpa = 0;
   let min_gpa = 4;
@@ -489,10 +488,6 @@ function create_overall_barchart() {
 
   // Declare the x (horizontal position) scale.
   const x = d3.scaleUtc([new Date("2010"), new Date("2023")], [marginLeft, width - marginRight]);
-  // const x = d3.scaleBand()
-  //   .domain([new Date(minYear), new Date(maxYear)]) // descending frequency
-  //   .range([marginLeft, width - marginRight])
-  //   .padding(0.1);
 
   // Declare the y (vertical position) scale.
   const y = d3.scaleLinear()
@@ -515,6 +510,9 @@ function create_overall_barchart() {
     .attr("transform", `translate(${marginLeft},0)`)
     .call(d3.axisLeft(y).tickFormat((y) => y))
     .call(g => g.select(".domain").remove())
+    .call(g => g.selectAll(".tick line").clone()
+      .attr("x2", width - marginLeft - marginRight)
+      .attr("stroke-opacity", 0.1))
     .call(g => g.append("text")
       .attr("x", -marginLeft)
       .attr("y", 10)
@@ -531,7 +529,29 @@ function create_overall_barchart() {
     .attr("x", (d) => x(new Date(d.year)))
     .attr("y", (d) => y(d.gpa))
     .attr("height", (d) => y(d3.min(flattenedData, (d) => d.gpa)) - y(d.gpa))
-    .attr("width", 20);
+    .attr("width", 20)
+    .attr("id", (d) => "bar-" + d.year)
+    .on("mouseenter", (e, d) => {
+      // let x = e.clientX;
+      // let y = e.clientY;
+      let rect = document.getElementById("bar-" + d.year).getBoundingClientRect();
+
+      d3.select("#tooltip")
+        .style("left", (rect.x - 0) + "px")
+        .style("top", (rect.y - 30) + "px")
+        .style("visibility", "visible")
+        .html("<p>" + Math.round(d.gpa * 1000) / 1000 + "</p>");
+
+    })
+    .on("mouseleave", (e, d) => {
+      d3.select("#tooltip")
+        .style("visibility", "hidden");
+    })
+    .on("mousemove", (e, d) => {
+      // let tooltip = document.getElementById("tooltip");
+      // tooltip.style.left = e.clientX + "px";
+      // tooltip.style.top = e.clientY + "px";
+    });
 }
 
 function createLegends() {
@@ -613,6 +633,7 @@ function createLegends() {
 
 }
 
+// let tooltip = d3.select
 createLegends();
 create_averages();
 create_lowest();
