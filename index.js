@@ -611,6 +611,7 @@ function create_lowest() {
     });
   });
   observer.observe(document.querySelector('svg#second-svg'));
+
 }
 
 function create_units_streamgraph() {
@@ -761,6 +762,91 @@ function create_units_streamgraph() {
     .attr("d", area)
     .append("title")
     .text(d => d.key);
+
+  document.querySelector("svg#third-svg").parentNode.children[0]
+    .setAttribute("opacity", "0");
+  document.querySelector("svg#third-svg").parentNode.children[1]
+    .setAttribute("opacity", "0");
+
+  // d3.select("button#min")
+  //   .on("click", () => {
+  //     for (let key in yearly_academic_units) {
+  //       const pathLength = d3.select("path#stream" + key.replace(/\s/g, "")).node().getTotalLength();
+  //
+  //       d3.select("path#min" + key.replace(/\s/g, ""))
+  //         .interrupt()
+  //         .attr("stroke-dashoffset", pathLength)
+  //         .attr("stroke-dasharray", pathLength)
+  //         .transition()
+  //         .ease(d3.easeSin)
+  //         .delay(100)
+  //         .duration(2500)
+  //         .attr("stroke-dashoffset", 0);
+  //     }
+  //   })
+
+
+  // from stack overflow
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        if (entry.target.getAttribute("opacity") == 0) {
+          entry.target
+            .parentNode.children[0]
+            .setAttribute("opacity", "100")
+          entry.target
+            .parentNode.children[1]
+            .setAttribute("opacity", "100")
+          setTimeout(() => {
+            let button = document.querySelector("button#stream");
+            button["__on"][0].listener();
+          }, 1200);
+
+
+          // Annotations
+          setTimeout(() => {
+            d3.select("svg#third-svg")
+              .append("g")
+              .attr("class", "annotation-group")
+              .call(d3.annotation()
+                .annotations([
+                  {
+                    note: {
+                      label: "",
+                      bgPadding: 20,
+                      title: "Lowest Variation"
+                    },
+                    data: { year: "2022", gpa: 4.0 },
+                    subject: { radius: 10 },
+                    dy: -45,
+                    dx: -80
+                  },
+                  {
+                    note: {
+                      label: "",
+                      bgPadding: 20,
+                      title: "Highest Variation"
+                    },
+                    data: { year: "2021", gpa: 5.25 },
+                    subject: { radius: 10 },
+                    dy: -20,
+                    dx: 65
+                  },
+                ])
+                .type(d3.annotationCalloutCircle)
+                .accessors({
+                  x: d => x(new Date(d.year)),
+                  y: d => y(d.gpa)
+                })
+              )
+          }, 500);
+
+        }
+      }
+    });
+  });
+  observer.observe(document.querySelector('svg#third-svg'));
+
 }
 
 function create_overall() {
@@ -1498,8 +1584,8 @@ function create_units_streamgraph_dashboard() {
   const x = d3.scaleUtc([new Date("2010"), new Date("2023")], [marginLeft, width - marginRight]);
 
   const y = d3.scaleLinear()
-    // .domain([d3.min(series.flat(2), (d) => d) * 0.9, d3.max(series.flat(2), (d) => d) * 1.1])
-    .domain([-0.05, d3.max(series.flat(2), (d) => d) * 1.1])
+    .domain([d3.min(series.flat(2), (d) => d), d3.max(series.flat(2), (d) => d) * 1.1])
+    // .domain([-0.05, d3.max(series.flat(2), (d) => d) * 1.1])
     .rangeRound([height - marginBottom, marginTop]);
 
   // Construct an area shape.
