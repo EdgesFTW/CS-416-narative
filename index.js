@@ -521,11 +521,96 @@ function create_lowest() {
     }
 
     svg.append("path")
+      .attr("id", "min" + key.replace(/\s/g, ""))
       .attr("fill", "none")
       .attr("stroke", academic_units_color[key])
       .attr("stroke-width", 2.5)
       .attr("d", line(flattened_year_stats));
   }
+
+  document.querySelector("svg#second-svg").parentNode.children[0]
+    .setAttribute("opacity", "0");
+  document.querySelector("svg#second-svg").parentNode.children[1]
+    .setAttribute("opacity", "0");
+
+  d3.select("button#min")
+    .on("click", () => {
+      for (let key in yearly_academic_units) {
+        const pathLength = d3.select("path#min" + key.replace(/\s/g, "")).node().getTotalLength();
+
+        d3.select("path#min" + key.replace(/\s/g, ""))
+          .interrupt()
+          .attr("stroke-dashoffset", pathLength)
+          .attr("stroke-dasharray", pathLength)
+          .transition()
+          .ease(d3.easeSin)
+          .delay(100)
+          .duration(2500)
+          .attr("stroke-dashoffset", 0);
+      }
+    })
+
+
+  // from stack overflow
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        if (entry.target.getAttribute("opacity") == 0) {
+          entry.target
+            .parentNode.children[0]
+            .setAttribute("opacity", "100")
+          entry.target
+            .parentNode.children[1]
+            .setAttribute("opacity", "100")
+          setTimeout(() => {
+            let button = document.querySelector("button#min");
+            button["__on"][0].listener();
+          }, 1200);
+
+
+          // Annotations
+          setTimeout(() => {
+            d3.select("svg#second-svg")
+              .append("g")
+              .attr("class", "annotation-group")
+              .call(d3.annotation()
+                .annotations([
+                  {
+                    note: {
+                      label: "Lowest GPA of any class in Gies Grainger and LAS",
+                      bgPadding: 20,
+                      title: "The lowest class GPA"
+                    },
+                    data: { year: "2021", gpa: 1.2 },
+                    subject: { radius: 10 },
+                    dy: -15,
+                    dx: -80
+                  },
+                  {
+                    note: {
+                      label: "Point that shows similarity of worse Grainger and Gies courses",
+                      bgPadding: 20,
+                      title: "Grainger == Gies"
+                    },
+                    data: { year: "2017", gpa: 2.1 },
+                    subject: { radius: 10 },
+                    dy: -20,
+                    dx: -35
+                  },
+                ])
+                .type(d3.annotationCalloutCircle)
+                .accessors({
+                  x: d => x(new Date(d.year)),
+                  y: d => y(d.gpa)
+                })
+              )
+          }, 2500);
+
+        }
+      }
+    });
+  });
+  observer.observe(document.querySelector('svg#second-svg'));
 }
 
 function create_units_streamgraph() {
@@ -764,6 +849,10 @@ function create_overall() {
     .x(d => x(new Date(d.year)))
     .y(d => y(d.gpa));
 
+  document.querySelector("#fourth-svg")
+    // .parentNode
+    // .children[1]
+    .setAttribute("opacity", "0");
   let svg = d3.select("svg#fourth-svg")
     .attr("width", width)
     .attr("height", height)
@@ -797,6 +886,7 @@ function create_overall() {
       .text("University wide average GPA"));
 
   svg.append("path")
+    .attr("id", "overall-line")
     .attr("fill", "none")
     .attr("stroke", "#1d4ed8")
     .attr("stroke-width", 2.5)
@@ -824,6 +914,105 @@ function create_overall() {
       d3.select("#tooltip")
         .style("visibility", "hidden");
     });
+
+  d3.select("button#overall-line")
+    .on("click", () => {
+      for (let key in yearly_academic_units) {
+        const pathLength = d3.select("path#overall-line").node().getTotalLength();
+
+        d3.select("path#overall-line")
+          .interrupt()
+          .attr("stroke-dashoffset", pathLength)
+          .attr("stroke-dasharray", pathLength)
+          .transition()
+          .ease(d3.easeSin)
+          .delay(100)
+          .duration(2500)
+          .attr("stroke-dashoffset", 0);
+      }
+    })
+  // svg.append("path")
+  //   .attr("id", "avg1" + key.replace(/\s/g, ""))
+  //   .attr("fill", "none")
+  //   .attr("stroke", academic_units_color[key])
+  //   .attr("stroke-width", 2.5)
+  //   .attr("d", line(flattened_year_stats));
+  //
+  // const pathLength = d3.select("path#avg1" + key.replace(/\s/g, "")).node().getTotalLength();
+  //
+  // d3.select("path#avg1" + key.replace(/\s/g, ""))
+  //   .interrupt()
+  //   .attr("stroke-dashoffset", pathLength)
+  //   .attr("stroke-dasharray", pathLength)
+
+
+  // from stack overflow
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        if (entry.target.getAttribute("opacity") == 0) {
+          entry.target.setAttribute("opacity", "100")
+          setTimeout(() => {
+            let button = document.querySelector("button#overall-line");
+            button["__on"][0].listener();
+          }, 1200);
+
+
+          // Annotations
+          setTimeout(() => {
+            d3.select("svg#fourth-svg")
+              .append("g")
+              .attr("class", "annotation-group")
+              .call(d3.annotation()
+                .annotations([
+                  {
+                    note: {
+                      label: "The point in which overall GPA begins to drastically increase",
+                      bgPadding: 20,
+                      title: "Inflection Point"
+                    },
+                    data: { year: "2019", gpa: 3.334 },
+                    subject: { radius: 10 },
+                    dy: 15,
+                    dx: 80
+                  },
+                  {
+                    note: {
+                      label: "The peak seen during covid before we returned to fully in-person classes ",
+                      bgPadding: 20,
+                      title: "Covid peak campuswide GPA"
+                    },
+                    data: { year: "2020", gpa: 3.486 },
+                    subject: { radius: 10 },
+                    dy: 5,
+                    dx: -70
+                  },
+                  {
+                    note: {
+                      label: "The point with the ",
+                      bgPadding: 20,
+                      title: "Covid peak campuswide GPA"
+                    },
+                    data: { year: "2023", gpa: 3.507 },
+                    subject: { radius: 10 },
+                    dy: 135,
+                    dx: -35
+                  },
+                ])
+                .type(d3.annotationCalloutCircle)
+                .accessors({
+                  x: d => x(new Date(d.year)),
+                  y: d => y(d.gpa)
+                })
+              )
+          }, 2500);
+
+        }
+      }
+    });
+  });
+  observer.observe(document.querySelector('#fourth-svg'));
+
 }
 
 function createLegends() {
@@ -1309,8 +1498,8 @@ function create_units_streamgraph_dashboard() {
   const x = d3.scaleUtc([new Date("2010"), new Date("2023")], [marginLeft, width - marginRight]);
 
   const y = d3.scaleLinear()
-    // .domain(d3.extent(series.flat(2)))
-    .domain([d3.min(series.flat(2), (d) => d) - 1.1, d3.max(series.flat(2), (d) => d) + 1.1])
+    // .domain([d3.min(series.flat(2), (d) => d) * 0.9, d3.max(series.flat(2), (d) => d) * 1.1])
+    .domain([-0.05, d3.max(series.flat(2), (d) => d) * 1.1])
     .rangeRound([height - marginBottom, marginTop]);
 
   // Construct an area shape.
@@ -1318,6 +1507,8 @@ function create_units_streamgraph_dashboard() {
     .x(d => x(new Date(d.data[0])))
     .y0(d => y(d[0]))
     .y1(d => y(d[1]));
+
+  document.querySelector("svg#seventh-svg").replaceChildren("") // remove existing svg content
 
   let svg = d3.select("svg#seventh-svg")
     .attr("width", width)
@@ -1368,9 +1559,6 @@ function create_overall_dashboard() {
 
   let max_gpa = 0;
   let min_gpa = 4;
-  // for (let ele in document.getElementById("column-1").chi) {
-  //   console.log(ele);
-  // }
 
   // Data generation
   let academic_units = {};
@@ -1416,8 +1604,6 @@ function create_overall_dashboard() {
     let total_gradepoints = 0;
     let total_students = 0;
     for (let unit in yearly_academic_units) {
-      console.log(unit, year);
-      console.log(yearly_academic_units)
       let ele = yearly_academic_units[unit][year];
       let gradepoints = ele.gradepoints.reduce((e1, e2) => { return e1 + e2 }, 0);
       let students = ele.students.reduce((e1, e2) => { return e1 + e2 }, 0);
@@ -1447,6 +1633,8 @@ function create_overall_dashboard() {
   const line = d3.line()
     .x(d => x(new Date(d.year)))
     .y(d => y(d.gpa));
+
+  document.querySelector("svg#eighth-svg").replaceChildren("") // remove existing svg content
 
   let svg = d3.select("svg#eighth-svg")
     .attr("width", width)
@@ -1515,7 +1703,6 @@ function create_dashboard() {
 
   window.unit_filter = [];
   document.getElementById("column-1").childNodes.forEach((ele) => {
-    // console.log(ele.textContent.trim().replace(/\s/g, ""));
     let str = ele.textContent.trim().replace(/\s/g, "");
     let box = ele.firstChild;
     if (box != null && ele.firstChild.checked) {
@@ -1524,12 +1711,10 @@ function create_dashboard() {
 
   });
   unit_filter = unit_filter.filter((e) => e != "");
-  console.log(unit_filter);
 
   // window.class_filter = ["100", "200", "300", "400", "500"];
   window.class_filter = [];
   document.getElementById("column-2").childNodes.forEach((ele) => {
-    // console.log(ele.textContent.trim().replace(/\s/g, ""));
     let str = ele.textContent.trim().replace(/\s/g, "");
     let box = ele.firstChild;
     if (box != null && ele.firstChild.checked) {
@@ -1538,7 +1723,6 @@ function create_dashboard() {
 
   });
   class_filter = class_filter.filter((e) => e != "");
-  console.log(window.class_filter);
 
   create_averages_dashboard();
   create_lowest_dashboard();
@@ -1547,7 +1731,6 @@ function create_dashboard() {
 }
 
 createLegends();
-// create_averages0();
 create_averages1();
 create_lowest();
 create_units_streamgraph();
