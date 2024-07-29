@@ -933,13 +933,15 @@ function create_averages_dashboard() {
   let academic_units = {};
   for (let i = 0; i < data.length; i++) {
     let unit = data[i]["Academic Units"];
+    if (!window.unit_filter.includes(data[i]["Academic Units"].trim().replace(/\s/g, ""))) { continue; }
+    if (!window.class_filter.includes(data[i]["Class Level"].trim().replace(/\s/g, ""))) { continue; }
     if (!academic_units[unit]) { academic_units[unit] = []; }
     academic_units[unit].push(data[i]);
   }
 
   let yearly_academic_units = {};
   for (let key in academic_units) {
-    if (key != "Grainger" && key != "LAS" && key != "Gies") { continue; } // dont include the other catagory of classes
+    if (key == "Other") { continue; } // dont include the other catagory of classes
 
     let year_stats = {};
     for (let i = 0; i < academic_units[key].length; i++) {
@@ -981,6 +983,8 @@ function create_averages_dashboard() {
     .x(d => x(new Date(d.year)))
     .y(d => y(d.gpa));
 
+
+  document.querySelector("svg#fifth-svg").replaceChildren("") // remove existing svg content
 
   let svg = d3.select("svg#fifth-svg")
     .attr("width", width)
@@ -1113,15 +1117,15 @@ function create_lowest_dashboard() {
   let academic_units = {};
   for (let i = 0; i < data.length; i++) {
     let unit = data[i]["Academic Units"];
-    if (!academic_units[unit]) {
-      academic_units[unit] = [];
-    }
+    if (!academic_units[unit]) { academic_units[unit] = []; }
+    if (!window.unit_filter.includes(data[i]["Academic Units"].trim().replace(/\s/g, ""))) { continue; }
+    if (!window.class_filter.includes(data[i]["Class Level"].trim().replace(/\s/g, ""))) { continue; }
     academic_units[unit].push(data[i]);
   }
 
   let yearly_academic_units = {};
   for (let key in academic_units) {
-    if (key != "Grainger" && key != "LAS" && key != "Gies") { continue; } // dont include the other catagory of classes
+    if (key == "Other") { continue; } // dont include the other catagory of classes
     let year_stats = {};
     for (let i = 0; i < academic_units[key].length; i++) {
       let year = academic_units[key][i]["Year"];
@@ -1157,8 +1161,9 @@ function create_lowest_dashboard() {
     .x(d => x(new Date(d.year)))
     .y(d => y(d.gpa)); // sort and take the min ele
 
+  document.querySelector("svg#sixth-svg").replaceChildren("") // remove existing svg content
 
-  let svg = d3.select("svg#second-svg")
+  let svg = d3.select("svg#sixth-svg")
     .attr("width", width)
     .attr("height", height)
     .attr("viewBox", [0, 0, width, height])
@@ -1219,11 +1224,10 @@ function create_units_streamgraph_dashboard() {
   let academic_units = {};
   for (let i = 0; i < data.length; i++) {
     let unit = data[i]["Academic Units"];
-    if (!academic_units[unit]) {
-      academic_units[unit] = [];
-    }
+    if (!window.unit_filter.includes(data[i]["Academic Units"].trim().replace(/\s/g, ""))) { continue; }
+    if (!window.class_filter.includes(data[i]["Class Level"].trim().replace(/\s/g, ""))) { continue; }
+    if (!academic_units[unit]) { academic_units[unit] = []; }
     academic_units[unit].push(data[i]);
-
   }
 
   let yearly_academic_units = {};
@@ -1315,7 +1319,7 @@ function create_units_streamgraph_dashboard() {
     .y0(d => y(d[0]))
     .y1(d => y(d[1]));
 
-  let svg = d3.select("svg#third-svg")
+  let svg = d3.select("svg#seventh-svg")
     .attr("width", width)
     .attr("height", height)
     .attr("viewBox", [0, 0, width, height])
@@ -1364,16 +1368,18 @@ function create_overall_dashboard() {
 
   let max_gpa = 0;
   let min_gpa = 4;
+  // for (let ele in document.getElementById("column-1").chi) {
+  //   console.log(ele);
+  // }
 
   // Data generation
   let academic_units = {};
   for (let i = 0; i < data.length; i++) {
     let unit = data[i]["Academic Units"];
-    if (!academic_units[unit]) {
-      academic_units[unit] = [];
-    }
+    if (!window.unit_filter.includes(data[i]["Academic Units"].trim().replace(/\s/g, ""))) { continue; }
+    if (!window.class_filter.includes(data[i]["Class Level"].trim().replace(/\s/g, ""))) { continue; }
+    if (!academic_units[unit]) { academic_units[unit] = []; }
     academic_units[unit].push(data[i]);
-
   }
 
   let yearly_academic_units = {};
@@ -1406,10 +1412,12 @@ function create_overall_dashboard() {
   }
 
   let flattenedData = [];
-  for (let year in yearly_academic_units["Grainger"]) {
+  for (let year in Object.values(yearly_academic_units)[0]) {
     let total_gradepoints = 0;
     let total_students = 0;
     for (let unit in yearly_academic_units) {
+      console.log(unit, year);
+      console.log(yearly_academic_units)
       let ele = yearly_academic_units[unit][year];
       let gradepoints = ele.gradepoints.reduce((e1, e2) => { return e1 + e2 }, 0);
       let students = ele.students.reduce((e1, e2) => { return e1 + e2 }, 0);
@@ -1440,7 +1448,7 @@ function create_overall_dashboard() {
     .x(d => x(new Date(d.year)))
     .y(d => y(d.gpa));
 
-  let svg = d3.select("svg#fourth-svg")
+  let svg = d3.select("svg#eighth-svg")
     .attr("width", width)
     .attr("height", height)
     .attr("viewBox", [0, 0, width, height])
@@ -1504,12 +1512,38 @@ function create_overall_dashboard() {
 }
 
 function create_dashboard() {
+
+  window.unit_filter = [];
+  document.getElementById("column-1").childNodes.forEach((ele) => {
+    // console.log(ele.textContent.trim().replace(/\s/g, ""));
+    let str = ele.textContent.trim().replace(/\s/g, "");
+    let box = ele.firstChild;
+    if (box != null && ele.firstChild.checked) {
+      unit_filter.push(str);
+    }
+
+  });
+  unit_filter = unit_filter.filter((e) => e != "");
+  console.log(unit_filter);
+
+  // window.class_filter = ["100", "200", "300", "400", "500"];
+  window.class_filter = [];
+  document.getElementById("column-2").childNodes.forEach((ele) => {
+    // console.log(ele.textContent.trim().replace(/\s/g, ""));
+    let str = ele.textContent.trim().replace(/\s/g, "");
+    let box = ele.firstChild;
+    if (box != null && ele.firstChild.checked) {
+      window.class_filter.push(str);
+    }
+
+  });
+  class_filter = class_filter.filter((e) => e != "");
+  console.log(window.class_filter);
+
   create_averages_dashboard();
   create_lowest_dashboard();
   create_units_streamgraph_dashboard();
   create_overall_dashboard();
-
-  // buttons
 }
 
 createLegends();
@@ -1520,6 +1554,19 @@ create_units_streamgraph();
 create_overall();
 
 create_dashboard();
+
+document.getElementById("column-1").childNodes.forEach((ele) => {
+  let box = ele.firstChild;
+  if (box == null) { return; }
+  box.addEventListener("click", create_dashboard);
+})
+
+document.getElementById("column-2").childNodes.forEach((ele) => {
+  let box = ele.firstChild;
+  if (box == null) { return; }
+  box.addEventListener("click", create_dashboard);
+})
+
 
 document.querySelector("#loading-spinner").parentElement.remove();
 document.querySelector("#blur").classList.remove("blur");
